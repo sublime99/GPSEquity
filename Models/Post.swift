@@ -12,6 +12,7 @@ import Firebase
 //Post Model
 struct Post: Identifiable, Codable{
     @DocumentID var id: String?
+    var authorUID: String
     var title: String
     var author: String
     var postContent: [PostContent]
@@ -21,6 +22,7 @@ struct Post: Identifiable, Codable{
         case id
         case title
         case author
+        case authorUID
         case postContent
         case date
     }
@@ -30,6 +32,8 @@ struct PostContent: Identifiable, Codable{
     var id = UUID().uuidString
     var value: String
     var type: PostType
+    var image: UIImage?
+    var isDirectURL: Bool = true
     
     var height: CGFloat = 0
     var showImage: Bool = false
@@ -47,4 +51,5 @@ enum PostType: String, CaseIterable, Codable{
     case SubHeading = "SubHeading"
     case Paragraph = "Paragraph"
     case Image = "Image"
+    case ImageUpload = "Image Upload"
 }

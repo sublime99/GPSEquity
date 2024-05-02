@@ -9,11 +9,14 @@ import SwiftUI
 
 struct CreatePost: View {
     @EnvironmentObject var blogData : BlogViewModel
-    
+    // Color Based on ColorScheme...
     // Post Properties...
     @State var postTitle = ""
     @State var authorName = ""
     @State var postContent : [PostContent] = []
+    @State private var showImagePicker = false
+    @State private var imageUploaded = false
+    @State private var imageToUpload: UIImage?
     
     // Keyboard Focus State for TextViews...
     @FocusState var showKeyboard: Bool
@@ -31,7 +34,7 @@ struct CreatePost: View {
                     VStack(alignment: .leading){
                         
                         TextField("Post Title", text: $postTitle)
-                            .font(.title2)
+                            .font(.title2).foregroundColor(Color.white)
                         
                         Divider()
                     }
@@ -41,7 +44,7 @@ struct CreatePost: View {
                         Text("Author:")
                             .font(.caption.bold())
                         
-                        TextField("iJustine", text: $authorName)
+                        TextField("iJustine", text: $authorName).foregroundColor(Color.white)
                         
                         Divider()
                     }
@@ -82,6 +85,36 @@ struct CreatePost: View {
                                         Divider()
                                     }
                                     .padding(.leading,5)
+                                }
+                            }
+                            else if (content.type == .ImageUpload) {
+                                if let image = imageToUpload {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 250)
+                                    if (imageUploaded == false) {
+                                        Button("Upload") {
+                                            blogData.uploadImage(image) { result in
+                                                switch result {
+                                                case .success(let url):
+                                                    content.value = url
+                                                    content.showImage = true
+                                                    imageUploaded = true
+                                                    //                                                imageToUpload = nil // Reset the image after uploading
+                                                case .failure(let error):
+                                                    print("Upload failed: \(error.localizedDescription)")
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Button("Select Image") {
+                                        showImagePicker = true
+                                    }
+                                    .sheet(isPresented: $showImagePicker) {
+                                        ImagePicker(selectedImage: $imageToUpload)
+                                    }
                                 }
                             }
                             else{
@@ -137,11 +170,16 @@ struct CreatePost: View {
                         ForEach(PostType.allCases,id: \.rawValue){type in
                             
                             Button(type.rawValue){
-                                
-                                // Appending New PostCOntent...
+                                let isDirectURL = type == .Image
+                                            let newContent = PostContent(value: "", type: type, isDirectURL: isDirectURL)
                                 withAnimation{
-                                    postContent.append(PostContent(value: "", type: type))
+                                    postContent.append(newContent)
                                 }
+                                            if type == .ImageUpload {
+                                                showImagePicker = true
+                                                imageUploaded = false
+                                            }
+                                // Appending New PostCOntent...
                             }
                         }
                         
@@ -182,18 +220,20 @@ struct CreatePost: View {
                     else{
                         Button("Post"){
                             blogData.writePost(content: postContent,author: authorName,postTitle: postTitle)
-                        }
+                        }.foregroundColor(Color.white)
                         .disabled(authorName == "" || postTitle == "")
                     }
                 }
             }
+//            .background(Color(hex: 0x010b26))
         }
+//        .background(Color(hex: 0x010b26))
     }
 }
 
 struct CreatePost_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        Home()
     }
 }
 
@@ -208,6 +248,8 @@ func getFontSize(type: PostType)->CGFloat{
     case .Paragraph:
         return 18
     case .Image:
+        return 18
+    case .ImageUpload:
         return 18
     }
 }

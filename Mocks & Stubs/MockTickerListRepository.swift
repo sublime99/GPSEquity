@@ -16,7 +16,12 @@ struct MockTickerListRepository: TickerListRepository {
         try await stubbedLoad()
     }
     
+    func loadDash() async throws -> [Ticker] {
+        try await stubbedLoad()
+    }
+    
     func save(_ current: [Ticker]) async throws {}
+    func saveDash(_ current: [Ticker]) throws {}
     
 }
 

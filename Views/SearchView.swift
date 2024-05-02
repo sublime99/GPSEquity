@@ -42,6 +42,7 @@ struct SearchView: View {
         .refreshable { await quotesVM.fetchQuotes(tickers: searchVM.tickers) }
         .task(id: searchVM.tickers) { await quotesVM.fetchQuotes(tickers: searchVM.tickers) }
         .overlay { listSearchOverlay }
+//        .background(Color(hex: 0x010b26))
     }
     
     @ViewBuilder

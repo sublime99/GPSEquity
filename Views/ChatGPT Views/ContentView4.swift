@@ -39,7 +39,7 @@ struct MultimodalChatView: View {
             HStack {
                 TextField("Enter a message...", text: $textInput)
                     .textFieldStyle(.roundedBorder)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                 
                 if chatService.loadingResponse {
                     // MARK: Loading indicator
@@ -60,7 +60,7 @@ struct MultimodalChatView: View {
         .background {
             // MARK: Background
             ZStack {
-                Color.black
+//                Color(hex: 0x010b26)
             }
             .ignoresSafeArea()
         }

@@ -24,7 +24,8 @@ struct StockTickerView: View {
             scrollView
         }
         .padding(.top)
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(hex: 0x006788))
+        .environment(\.colorScheme, .dark)
         .task(id: chartVM.selectedRange.rawValue) {
             if quoteVM.quote == nil {
                 await quoteVM.fetchQuote()
@@ -60,11 +61,6 @@ struct StockTickerView: View {
                 .frame(maxWidth: .infinity, minHeight: 220)
             
             Divider().padding([.horizontal, .top])
-            
-//            quoteDetailRowView
-//                .frame(maxWidth: .infinity, minHeight: 80)
-            
-            
         }
         .scrollIndicators(.hidden)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -81,30 +77,7 @@ struct StockTickerView: View {
         default: EmptyView()
         }
     }
-    
-    @ViewBuilder
-    private var quoteDetailRowView: some View {
-        switch quoteVM.phase {
-        case .fetching: LoadingStateView()
-        case .failure(let error): ErrorStateView(error: "Quote: \(error.localizedDescription)")
-                .padding(.horizontal)
-        case .success(let quote):
-            ScrollView(.horizontal) {
-                HStack(spacing: 16) {
-                    ForEach(quote.columnItems) {
-                        QuoteDetailRowColumnView(item: $0)
-                    }
-                }
-                .padding(.horizontal)
-                .font(.caption.weight(.semibold))
-                .lineLimit(1)
-            }
-            .scrollIndicators(.hidden)
-    
-            
-        default: EmptyView()
-        }
-    }
+  
     
     private var priceDiffRowView: some View {
         VStack(alignment: .leading, spacing: 8) {

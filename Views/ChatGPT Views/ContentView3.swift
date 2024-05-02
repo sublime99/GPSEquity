@@ -30,7 +30,7 @@ struct ContentView3: View {
             HStack {
                 TextField("Enter a message", text: $textInput)
                     .textFieldStyle(.roundedBorder)
-                    .foregroundStyle(.black)
+//                    .foregroundStyle(Color(hex: 0x010b26))
                 Button(action: sendMessage, label: {
                     Image(systemName: "paperplane.fill")
                 })
@@ -41,7 +41,7 @@ struct ContentView3: View {
         .background {
             // MARK: Background
             ZStack {
-                Color.black
+//                Color(hex: 0x010b26)
             }
             .ignoresSafeArea()
         }

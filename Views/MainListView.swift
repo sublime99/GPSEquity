@@ -13,15 +13,38 @@ struct MainListView: View {
     @EnvironmentObject var appVM: AppViewModel
     @StateObject var quotesVM = QuotesViewModel()
     @StateObject var searchVM = SearchViewModel()
+    // Color Based on ColorScheme...
+    @Environment(\.colorScheme) var scheme
     
     var body: some View {
         TabView{
             NavigationView {
-                tickerListView
+                dashboardView
+//                    .background(Color(hex: 0x010b26))
                     .listStyle(.plain)
                     .overlay { overlayView }
                     .toolbar{
                         titleToolbar
+                    }
+                    .searchable(text: $searchVM.query)
+                    .sheet(item: $appVM.selectedTicker) {
+                        StockTickerView(chartVM: ChartViewModel(ticker: $0, apiService: quotesVM.stocksAPI), quoteVM: .init(ticker: $0,
+                                                                                                                            stocksAPI: quotesVM.stocksAPI))
+                        .presentationDetents([.height(560)])
+                        .presentationBackground(.thickMaterial)
+                    }
+            }
+            .tabItem {
+                Image(systemName: "iphone.homebutton")
+                Text("Dashboard")
+            }
+            NavigationView {
+                tickerListView
+//                    .background(Color(hex: 0x010b26))
+                    .listStyle(.plain)
+                    .overlay { overlayView }
+                    .toolbar{
+                        favoritesToolbar
                     }
                     .searchable(text: $searchVM.query)
                     .refreshable {
@@ -31,40 +54,70 @@ struct MainListView: View {
                         StockTickerView(chartVM: ChartViewModel(ticker: $0, apiService: quotesVM.stocksAPI), quoteVM: .init(ticker: $0,
                                                                                                                             stocksAPI: quotesVM.stocksAPI))
                         .presentationDetents([.height(560)])
+                        .presentationBackground(.thickMaterial)
                     }
                     .task(id: appVM.tickers){
                         await quotesVM.fetchQuotes(tickers: appVM.tickers)
-                        
                     }
             }
             .tabItem {
-            Image(systemName: "chart.bar.fill")
-            Text("MarketWatch")
+            Image(systemName: "chart.line.uptrend.xyaxis")
+            Text("Stock Tracker")
             }
             NavigationView {
                 LearnView()
             }
             .tabItem {
-                Image(systemName: "graduationcap")
-                Text("Learn")
+                Image(systemName: "book")
+                Text("Tutorials")
             }
             NavigationView {
                 ContentView()
             }
             .tabItem {
-                Image(systemName: "doc.plaintext.fill")
-                Text("Blog")
+                Image(systemName: "newspaper")
+                Text("Blogs")
             }
             NavigationView {
-//                ContentView1(viewModel: ChatViewModel())
                 MultimodalChatView()
             }
             .tabItem {
-                Image(systemName: "questionmark.circle.fill")
-                Text("Ask Anything!")
+                Image(systemName: "bubble")
+                Text("Chat Assistant")
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .environment(\.colorScheme, .dark)
+    }
+    
+    private var dashboardView: some View {
+    
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Our Picks").font(.title2.weight(.heavy)).padding()
+            List {
+                ForEach(appVM.dashTickers) { ticker in
+                    TickerListRowView(
+                        data: .init(
+                            symbol: ticker.symbol,
+                            name: ticker.shortname,
+                            price: quotesVM.priceForTicker(ticker),
+                            type: .search(
+                                isSaved: appVM.isAddedToMyTickers(ticker: ticker),
+                                onButtonTapped: {
+                                    Task { @MainActor in
+                                        appVM.toggleTicker(ticker)
+                                    }
+                                }
+                            )))
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        appVM.selectedTicker = ticker
+                    }
+                }
+                .onDelete { appVM.removeTickers(atOffsets: $0) }
+            }
+//            .background(Color(hex: 0x010b26))
+        }
     }
     
     private var tickerListView: some View {
@@ -75,7 +128,14 @@ struct MainListView: View {
                         symbol: ticker.symbol,
                         name: ticker.shortname,
                         price: quotesVM.priceForTicker(ticker),
-                        type: .main))
+                        type: .search(
+                            isSaved: appVM.isAddedToMyTickers(ticker: ticker),
+                            onButtonTapped: {
+                                Task { @MainActor in
+                                    appVM.toggleTicker(ticker)
+                                }
+                            }
+                        )))
                 .contentShape(Rectangle())
                 .onTapGesture {
                     appVM.selectedTicker = ticker
@@ -83,6 +143,7 @@ struct MainListView: View {
             }
             .onDelete { appVM.removeTickers(atOffsets: $0) }
         }
+//        .background(Color(hex: 0x010b26))
     }
     
     @ViewBuilder
@@ -100,6 +161,14 @@ struct MainListView: View {
         ToolbarItem(placement: .navigationBarLeading) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(appVM.titleText)
+            }.font(.title2.weight(.heavy))
+        }
+    }
+    
+    private var favoritesToolbar: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Favorites")
             }.font(.title2.weight(.heavy))
         }
     }

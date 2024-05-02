@@ -45,8 +45,10 @@ struct LearnView: View {
                         .padding()
                 }
             }
+//            .background(Color(hex: 0x010b26))
 
         }
+//        .background(Color(hex: 0x010b26))
 
     }
 }

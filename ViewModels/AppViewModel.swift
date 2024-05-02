@@ -11,16 +11,20 @@ import XCAStocksAPI
 
 @MainActor
 class AppViewModel: ObservableObject {
-    
     @Published var tickers: [Ticker] = [] {
         didSet { saveTickers() }
+    }
+    
+    @Published var dashTickers: [Ticker] = [] {
+        didSet{ saveDashTickers() }
     }
     
     @Published var selectedTicker: Ticker?
  
     var titleText = "GPSEquity"
     @Published var subtitleText: String
-    var emptyTickersText = "Search & add symbol to see stock quotes"
+    var emptyTickersText = "Add your Favorite Stocks Here"
+    
     
     private let subtitleDateFormatter: DateFormatter = {
         let df = DateFormatter()
@@ -34,6 +38,7 @@ class AppViewModel: ObservableObject {
         self.tickerListRepository = repository
         self.subtitleText = subtitleDateFormatter.string(from: Date())
         loadTickers()
+        loadDashTickers()
     }
     
     private func loadTickers() {
@@ -48,11 +53,34 @@ class AppViewModel: ObservableObject {
         }
     }
     
+    private func loadDashTickers() {
+        Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                self.dashTickers = try await tickerListRepository.loadDash()
+            } catch {
+                print(error.localizedDescription)
+                self.dashTickers = []
+            }
+        }
+    }
+    
     private func saveTickers() {
         Task { [weak self] in
             guard let self = self else { return }
             do {
                 try await self.tickerListRepository.save(self.tickers)
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    private func saveDashTickers() {
+        Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                try self.tickerListRepository.saveDash(self.dashTickers)
             } catch {
                 print(error.localizedDescription)
             }

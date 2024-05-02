@@ -25,7 +25,7 @@ class SearchViewModel: ObservableObject {
     var isSearching: Bool { !trimmedQuery.isEmpty }
     
     var emptyListText: String {
-        "Symbols not found for\n\"\(query)\""
+        "Stocks not found for\n\"\(query)\""
     }
     
     private var cancellables = Set<AnyCancellable>()
@@ -59,6 +59,7 @@ class SearchViewModel: ObservableObject {
         
         do {
             let tickers = try await stocksAPI.searchTickers(query: searchQuery, isEquityTypeOnly: true)
+            print(tickers)
             if searchQuery != trimmedQuery { return }
             if tickers.isEmpty {
                 phase = .empty

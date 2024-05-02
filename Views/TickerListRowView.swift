@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 struct TickerListRowView: View {
-    
+    @EnvironmentObject var appVM: AppViewModel
     let data: TickerListRowData
     
     var body: some View {
@@ -22,14 +22,17 @@ struct TickerListRowView: View {
                 }
                 .buttonStyle(.plain)
             }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(data.symbol).font(.headline.bold())
-                if let name = data.name {
-                    Text(name)
-                        .font(.subheadline)
-                        .foregroundColor(Color(uiColor: .secondaryLabel))
+            HStack{
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(data.symbol).font(.headline.bold())
+                    if let name = data.name {
+                        Text(name)
+                            .font(.subheadline)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+                    }
                 }
+                Spacer()
+                
             }
             
             Spacer()
@@ -52,7 +55,7 @@ struct TickerListRowView: View {
                 .foregroundStyle(Color.white, Color.accentColor)
                 .imageScale(.large)
         } else {
-            Image(systemName: "plus.circle.fill")
+            Image(systemName: "bookmark.circle")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(Color.accentColor, Color.secondary.opacity(0.3))
                 .imageScale(.large)
@@ -88,9 +91,9 @@ struct TickerListRowView_Previews: PreviewProvider {
         VStack(alignment: .leading) {
             Text("Main List").font(.largeTitle.bold()).padding()
             VStack {
-                TickerListRowView(data: appleTikcerListRowData(rowType: .main))
+                TickerListRowView(data: appleTikcerListRowData(rowType: .search(isSaved: true, onButtonTapped: {})))
                 Divider()
-                TickerListRowView(data: teslaTikcerListRowData(rowType: .main))
+                TickerListRowView(data: teslaTikcerListRowData(rowType: .search(isSaved: true, onButtonTapped: {})))
             }.padding()
             
             Text("Search List").font(.largeTitle.bold()).padding()
