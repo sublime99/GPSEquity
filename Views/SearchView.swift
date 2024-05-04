@@ -25,7 +25,7 @@ struct SearchView: View {
                         isSaved: appVM.isAddedToMyTickers(ticker: ticker),
                         onButtonTapped: {
                             Task { @MainActor in
-                                appVM.toggleTicker(ticker)
+                                await appVM.toggleTicker(ticker)
                             }
                         }
                     )
@@ -43,6 +43,7 @@ struct SearchView: View {
         .task(id: searchVM.tickers) { await quotesVM.fetchQuotes(tickers: searchVM.tickers) }
         .overlay { listSearchOverlay }
 //        .background(Color(hex: 0x010b26))
+        .background(.black)
     }
     
     @ViewBuilder

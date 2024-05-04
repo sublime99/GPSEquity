@@ -7,6 +7,9 @@
 
 import Foundation
 import XCAStocksAPI
+import Firebase
+import FirebaseFirestore
+
 
 protocol TickerListRepository {
     func save(_ current: [Ticker]) async throws
@@ -18,47 +21,105 @@ protocol TickerListRepository {
 class TickerPlistRepository: TickerListRepository {
     
     private var saved: [Ticker]?
-    private let filename: String
+//    private let filename: String
     
-    private var url: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appending(component: "\(filename).plist")
-    }
+//    private var url: URL {
+//        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+//            .appending(component: "\(filename).plist")
+//    }
     
-    init(filename: String = "my_tickers") {
-        self.filename = filename
-    }
+//    init(filename: String = "my_tickers") {
+//        self.filename = filename
+//    }
     
-    func save(_ current: [Ticker]) throws {
-        if let saved, saved == current {
-            return
+//    func save(_ current: [Ticker]) throws {
+//        if let saved, saved == current {
+//            return
+//        }
+//        
+//        let encoder = PropertyListEncoder()
+//        encoder.outputFormat = .binary
+//        let data = try encoder.encode(current)
+//        try data.write(to: url, options: [.atomic])
+//        self.saved = current
+//    }
+    
+    func save(_ current: [Ticker]) async throws {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseTickerRepository", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])
         }
-        
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .binary
-        let data = try encoder.encode(current)
-        try data.write(to: url, options: [.atomic])
-        self.saved = current
+        let tickersData = current.map { $0.dictionary }
+        let db = Firestore.firestore()
+        let tickersRef = db.collection("users").document(userID).collection("tickers")
+
+        // Fetch documents to delete
+        let documents = try await tickersRef.getDocuments().documents
+        let batch = db.batch()
+        documents.forEach { doc in
+            batch.deleteDocument(doc.reference)
+        }
+
+        // Set new data
+        tickersData.forEach { ticker in
+            let docRef = tickersRef.document(ticker["symbol"] as! String)
+            batch.setData(ticker, forDocument: docRef)
+        }
+
+        // Commit batch
+        try await batch.commit()
     }
+
+     
     
     func saveDash(_ current: [Ticker]) throws {
         self.saved = dashStoxList
     }
     
     
-    func load() throws -> [Ticker] {
-        if FileManager.default.fileExists(atPath: url.path) {
-            let data = try Data(contentsOf: url)
-            let current = try PropertyListDecoder().decode([Ticker].self, from: data)
-            self.saved = current
-            return current
-        } else {
-            throw NSError(domain: "TickerPlistRepository", code: 1, userInfo: [NSLocalizedDescriptionKey: "File not found: \(url.path)"])
+//    func load() throws -> [Ticker] {
+//        if FileManager.default.fileExists(atPath: url.path) {
+//            let data = try Data(contentsOf: url)
+//            let current = try PropertyListDecoder().decode([Ticker].self, from: data)
+//            self.saved = current
+//            return current
+//        } else {
+//            throw NSError(domain: "TickerPlistRepository", code: 1, userInfo: [NSLocalizedDescriptionKey: "File not found: \(url.path)"])
+//        }
+//    }
+    
+    // Updated to use Firebase for loading
+        func load() async throws -> [Ticker] {
+            guard let userID = Auth.auth().currentUser?.uid else {
+                throw NSError(domain: "FirebaseTickerRepository", code: 2, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])
+            }
+            let db = Firestore.firestore()
+            let tickersRef = db.collection("users").document(userID).collection("tickers")
+            
+            return try await withCheckedThrowingContinuation { continuation in
+                tickersRef.getDocuments { (querySnapshot, err) in
+                    if let err = err {
+                        continuation.resume(throwing: err)
+                    } else if let querySnapshot = querySnapshot {
+                        let tickers = querySnapshot.documents.compactMap { doc -> Ticker? in
+                            if let symbol = doc.data()["symbol"] as? String, let shortname = doc.data()["shortname"] as? String {
+                                return Ticker(symbol: symbol, shortname: shortname)
+                            }
+                            return nil
+                        }
+                        continuation.resume(returning: tickers)
+                    }
+                }
+            }
         }
-    }
     
     func loadDash() throws -> [Ticker] {
         return dashStoxList
+    }
+}
+
+extension Ticker {
+    var dictionary: [String: Any] {
+        return ["symbol": symbol, "shortname": shortname ?? "", "longname": longname ?? "", "sector": sector ?? "", "industry": industry ?? "", "exchDisp": exchDisp ?? ""]
     }
 }
 

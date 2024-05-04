@@ -7,12 +7,10 @@
 
 import SwiftUI
 import WebKit
+import FirebaseAuth
 
 struct LearnView: View {
-
-
     var body: some View {
-        NavigationView{
             ScrollView{
                 VStack{
                     Text("Learn")
@@ -23,13 +21,13 @@ struct LearnView: View {
                     Text("Stock Market Basics")
                         .font(.title3)
                         .fontWeight(.bold)
-                    YTView(ID: "Xn7KWR9EOGQ")
+                    YTView(ID: "p7HKvqRI_Bo")
                         .padding()
                     
                     Text("Technical Analysis")
                         .font(.title3)
                         .fontWeight(.bold)
-                    YTView(ID: "j1wuR87r0yU")
+                    YTView(ID: "mBTPvvgRICQ")
                         .padding()
 
                     Text("Fundamental Analysis")
@@ -47,8 +45,6 @@ struct LearnView: View {
             }
 //            .background(Color(hex: 0x010b26))
 
-        }
-//        .background(Color(hex: 0x010b26))
 
     }
 }

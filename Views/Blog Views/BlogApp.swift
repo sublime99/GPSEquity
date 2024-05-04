@@ -25,9 +25,7 @@ struct BlogApp: App {
 
 struct ContentView: View {
     var body: some View{
-        NavigationView{
             Home()
         }
-    }
    
 }

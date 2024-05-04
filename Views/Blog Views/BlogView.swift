@@ -11,7 +11,7 @@ import FirebaseAuth
 
 struct Home: View {
     @StateObject var blogData = BlogViewModel()
-    @State private var isUserAuthenticated = false
+    
     
     // Color Based on ColorScheme...
     @Environment(\.colorScheme) var scheme
@@ -24,11 +24,9 @@ struct Home: View {
                 .fontWeight(.bold)
                 .padding(.leading, -8) // adjust the padding as needed
             
-            if isUserAuthenticated{
-                UserAuthenticatedView(isUserAuthenticated: $isUserAuthenticated, blogData: blogData)
-            } else {
-                SignInView(isUserAuthenticated: $isUserAuthenticated)
-            }
+            
+                UserAuthenticatedView(blogData: blogData)
+             
         }
         .background(Color.black)
         .environment(\.colorScheme, .dark)
@@ -36,7 +34,7 @@ struct Home: View {
         .overlay(
             alignment: .bottomTrailing
         ) {
-            isUserAuthenticated ? AnyView(FAB(blogData: blogData).environment(\.colorScheme, .dark)) : AnyView(EmptyView())
+            FAB(blogData: blogData).environment(\.colorScheme, .dark)
         }
         
          .task {
@@ -130,7 +128,7 @@ struct CardView: View {
 
 
 struct UserAuthenticatedView: View {
-    @Binding var isUserAuthenticated: Bool
+
     @ObservedObject var blogData: BlogViewModel
     var body: some View {
         if let posts = blogData.posts {
@@ -159,15 +157,7 @@ struct UserAuthenticatedView: View {
         } else {
             ProgressView()
         }
-        Spacer()
-        Button(action: {
-            try? Auth.auth().signOut()
-            isUserAuthenticated = false
-        }, label: {
-            Text("Sign Out")
-        })
-        .padding(.bottom)
-        .background(Color.black.ignoresSafeArea())
+//        Spacer()
     }
 }
 

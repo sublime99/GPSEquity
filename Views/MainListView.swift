@@ -7,9 +7,29 @@
 
 import SwiftUI
 import XCAStocksAPI
+import FirebaseAuth
 
 struct MainListView: View {
+    @State private var isUserAuthenticated = false
+    @StateObject var quotesVM = QuotesViewModel()
+    @StateObject var searchVM = SearchViewModel()
+    @Environment(\.colorScheme) var scheme
     
+    var body: some View {
+        VStack{
+            Spacer()
+            if isUserAuthenticated{
+                MainListView2(isUserAuthenticated: $isUserAuthenticated, quotesVM: quotesVM, searchVM: searchVM).environment(\.colorScheme, .dark).background(.black)
+            } else {
+                SignInView(isUserAuthenticated: $isUserAuthenticated).environment(\.colorScheme, .dark)
+            }
+            Spacer()
+        }.frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black.ignoresSafeArea())
+    }
+}
+
+struct MainListView2: View {
+    @Binding var isUserAuthenticated: Bool
     @EnvironmentObject var appVM: AppViewModel
     @StateObject var quotesVM = QuotesViewModel()
     @StateObject var searchVM = SearchViewModel()
@@ -20,13 +40,26 @@ struct MainListView: View {
         TabView{
             NavigationView {
                 dashboardView
-//                    .background(Color(hex: 0x010b26))
                     .listStyle(.plain)
-                    .overlay { overlayView }
+                    .overlay { dashOverlayView }
                     .toolbar{
                         titleToolbar
+                        
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Menu {
+                                Button("Logout", action: {
+                                    try? Auth.auth().signOut()
+                                    isUserAuthenticated = false
+                                })
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                            }
+                        }
                     }
                     .searchable(text: $searchVM.query)
+                    .task {
+                        await appVM.loadTickers()
+                    }
                     .sheet(item: $appVM.selectedTicker) {
                         StockTickerView(chartVM: ChartViewModel(ticker: $0, apiService: quotesVM.stocksAPI), quoteVM: .init(ticker: $0,
                                                                                                                             stocksAPI: quotesVM.stocksAPI))
@@ -45,6 +78,17 @@ struct MainListView: View {
                     .overlay { overlayView }
                     .toolbar{
                         favoritesToolbar
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Menu {
+                                Button("Logout", action: {
+                                    try? Auth.auth().signOut()
+                                    isUserAuthenticated = false
+
+                                })
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                            }
+                        }
                     }
                     .searchable(text: $searchVM.query)
                     .refreshable {
@@ -66,6 +110,20 @@ struct MainListView: View {
             }
             NavigationView {
                 LearnView()
+            }.toolbar{
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("Logout", action: {
+                            try? Auth.auth().signOut()
+                            
+                            isUserAuthenticated = false
+
+                        })
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
             }
             .tabItem {
                 Image(systemName: "book")
@@ -73,6 +131,20 @@ struct MainListView: View {
             }
             NavigationView {
                 ContentView()
+            }.toolbar{
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("Logout", action: {
+                            try? Auth.auth().signOut()
+                            
+                            isUserAuthenticated = false
+
+                        })
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
             }
             .tabItem {
                 Image(systemName: "newspaper")
@@ -80,12 +152,27 @@ struct MainListView: View {
             }
             NavigationView {
                 MultimodalChatView()
+            }.toolbar{
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("Logout", action: {
+                            try? Auth.auth().signOut()
+                            
+                            isUserAuthenticated = false
+
+                        })
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
             }
             .tabItem {
                 Image(systemName: "bubble")
                 Text("Chat Assistant")
             }
         }
+        .padding(.vertical, 20)
         .navigationViewStyle(StackNavigationViewStyle())
         .environment(\.colorScheme, .dark)
     }
@@ -105,7 +192,7 @@ struct MainListView: View {
                                 isSaved: appVM.isAddedToMyTickers(ticker: ticker),
                                 onButtonTapped: {
                                     Task { @MainActor in
-                                        appVM.toggleTicker(ticker)
+                                        await appVM.toggleTicker(ticker)
                                     }
                                 }
                             )))
@@ -132,7 +219,7 @@ struct MainListView: View {
                             isSaved: appVM.isAddedToMyTickers(ticker: ticker),
                             onButtonTapped: {
                                 Task { @MainActor in
-                                    appVM.toggleTicker(ticker)
+                                    await appVM.toggleTicker(ticker)
                                 }
                             }
                         )))
@@ -151,6 +238,13 @@ struct MainListView: View {
         if appVM.tickers.isEmpty {
             EmptyStateView(text: appVM.emptyTickersText)
         }
+        
+        if searchVM.isSearching {
+            SearchView(searchVM: searchVM)
+        }
+    }
+    @ViewBuilder
+    private var dashOverlayView: some View {
         
         if searchVM.isSearching {
             SearchView(searchVM: searchVM)

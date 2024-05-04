@@ -44,7 +44,7 @@ struct CreatePost: View {
                         Text("Author:")
                             .font(.caption.bold())
                         
-                        TextField("iJustine", text: $authorName).foregroundColor(Color.white)
+                        TextField("Sydney", text: $authorName).foregroundColor(Color.white)
                         
                         Divider()
                     }

@@ -24,6 +24,7 @@ class QuotesViewModel: ObservableObject {
         do {
             let symbols = tickers.map { $0.symbol }.joined(separator: ",")
             let quotes = try await stocksAPI.fetchQuotes(symbols: symbols)
+           
             var dict = [String: Quote]()
             quotes.forEach { dict[$0.symbol] = $0 }
             self.quotesDict = dict
@@ -36,7 +37,9 @@ class QuotesViewModel: ObservableObject {
         guard let quote = quotesDict[ticker.symbol],
               let price  = quote.regularPriceText,
               let change = quote.regularDiffText
+                
         else { return nil }
+        
         return (price, change)
     }
     

@@ -8,11 +8,14 @@
 import Foundation
 import SwiftUI
 import XCAStocksAPI
+import FirebaseAuth
 
 @MainActor
 class AppViewModel: ObservableObject {
+    private var authHandle: AuthStateDidChangeListenerHandle?
+
     @Published var tickers: [Ticker] = [] {
-        didSet { saveTickers() }
+        didSet { Task {await saveTickers() }}
     }
     
     @Published var dashTickers: [Ticker] = [] {
@@ -34,14 +37,38 @@ class AppViewModel: ObservableObject {
     
     let tickerListRepository: TickerListRepository
     
+    
+    
+    
     init(repository: TickerListRepository = TickerPlistRepository()) {
         self.tickerListRepository = repository
         self.subtitleText = subtitleDateFormatter.string(from: Date())
         loadTickers()
         loadDashTickers()
+        observeAuthChanges()
     }
     
-    private func loadTickers() {
+    private func observeAuthChanges() {
+            authHandle = Auth.auth().addStateDidChangeListener { [weak self] (auth, user) in
+                if let user = user {
+                    self?.loadTickers()
+                } else {
+                    self?.tickers = []
+                }
+            }
+        }
+    
+    deinit {
+            if let handle = authHandle {
+                Auth.auth().removeStateDidChangeListener(handle)
+            }
+        }
+    
+    
+    
+    
+    
+    func loadTickers() {
         Task { [weak self] in
             guard let self = self else { return }
             do {
@@ -65,7 +92,7 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    private func saveTickers() {
+    private func saveTickers() async {
         Task { [weak self] in
             guard let self = self else { return }
             do {
@@ -93,24 +120,26 @@ class AppViewModel: ObservableObject {
     }
     
     func isAddedToMyTickers(ticker: Ticker) -> Bool {
-        tickers.first { $0.symbol == ticker.symbol } != nil
+        return tickers.first { $0.symbol == ticker.symbol } != nil
     }
     
-    func toggleTicker(_ ticker: Ticker) {
+    func toggleTicker(_ ticker: Ticker) async {
         if isAddedToMyTickers(ticker: ticker) {
-            removeFromMyTickers(ticker: ticker)
+            await removeFromMyTickers(ticker: ticker)
         } else {
-            addToMyTickers(ticker: ticker)
+            await addToMyTickers(ticker: ticker)
         }
     }
     
-    private func addToMyTickers(ticker: Ticker) {
+    private func addToMyTickers(ticker: Ticker) async {
         tickers.append(ticker)
+        await self.saveTickers()
     }
     
-    private func removeFromMyTickers(ticker: Ticker) {
+    private func removeFromMyTickers(ticker: Ticker) async {
         guard let index = tickers.firstIndex(where: { $0.symbol == ticker.symbol }) else { return }
         tickers.remove(at: index)
+        await self.saveTickers()
     }
     
     func openYahooFinance() {
