@@ -16,6 +16,8 @@ struct SignInView: View {
     @State private var name = ""
     @State private var error: IdentifiableError?
     @State private var showWelcomeAlert = false
+    @State private var showingResetPassword = false // State to control navigation
+
 
     var body: some View {
         VStack {
@@ -43,6 +45,16 @@ struct SignInView: View {
             .alert(item: $error) { error in
                   Alert(title: Text("Error"), message: Text(error.localizedDescription))
               }
+            
+            Button("Reset Password?") {
+                              showingResetPassword = true
+                          }
+                          .foregroundColor(.blue)
+                          .padding()
+
+                          NavigationLink(destination: ForgotPasswordView(), isActive: $showingResetPassword) {
+                              EmptyView().background(.black)
+                          }.background(.black)
                  
             VStack {
                 Text("Don't have an account?")
@@ -54,10 +66,6 @@ struct SignInView: View {
                 .foregroundColor(.blue)
             }
         }.background(.black)
-        
-//        .alert(isPresented: $showWelcomeAlert) {
-//            Alert(title: Text("Welcome to GPSEquity - Blog"), message: Text("You have successfully signed in or signed up"), dismissButton: .default(Text("OK")))
-//        }
     }
     
     func signIn() {
@@ -71,17 +79,7 @@ struct SignInView: View {
             }
         }
     }
-    
-//    func createAccount() {
-//        Auth.auth().createUser(withEmail: email, password: password) { result, error in
-//            if let error = error {
-//                self.error = IdentifiableError(error: error)
-//            } else {
-//                self.showWelcomeAlert = true
-//                self.signIn()
-//            }
-//        }
-//    }
+
     
     func createAccount() {
             Auth.auth().createUser(withEmail: email, password: password) { result, error in
@@ -128,3 +126,63 @@ struct IdentifiableError: Identifiable {
 }
 
 
+struct ForgotPasswordView: View {
+    @State private var email = ""
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Reset Password")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding()
+            TextField("Enter your email", text: $email)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+                .autocapitalization(.none)
+                .keyboardType(.emailAddress)
+            
+            Button("Reset Password") {
+                resetPassword()
+            }
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.blue)
+            .cornerRadius(8)
+            
+            Spacer()
+        }
+        .padding()
+        .background(.black)
+        .environment(\.colorScheme, .dark)
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Password Reset"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        }
+    }
+    
+    private func resetPassword() {
+        guard !email.isEmpty else {
+            alertMessage = "Please enter your email address to reset your password."
+            showAlert = true
+            return
+        }
+
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                // Firebase returns an error if the email is not associated with any user
+                print(error.localizedDescription)  // Logging the error for debugging purposes
+                switch (error as NSError).code {
+                case AuthErrorCode.userNotFound.rawValue:
+                    alertMessage = "No account found with this email. Please check the email address and try again."
+                default:
+                    alertMessage = "An error occurred: \(error.localizedDescription)"
+                }
+            } else {
+                alertMessage = "A password reset link has been sent to your email. Please check your inbox."
+            }
+            showAlert = true
+        }
+    }
+
+}

@@ -21,28 +21,6 @@ protocol TickerListRepository {
 class TickerPlistRepository: TickerListRepository {
     
     private var saved: [Ticker]?
-//    private let filename: String
-    
-//    private var url: URL {
-//        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-//            .appending(component: "\(filename).plist")
-//    }
-    
-//    init(filename: String = "my_tickers") {
-//        self.filename = filename
-//    }
-    
-//    func save(_ current: [Ticker]) throws {
-//        if let saved, saved == current {
-//            return
-//        }
-//        
-//        let encoder = PropertyListEncoder()
-//        encoder.outputFormat = .binary
-//        let data = try encoder.encode(current)
-//        try data.write(to: url, options: [.atomic])
-//        self.saved = current
-//    }
     
     func save(_ current: [Ticker]) async throws {
         guard let userID = Auth.auth().currentUser?.uid else {
@@ -76,16 +54,6 @@ class TickerPlistRepository: TickerListRepository {
     }
     
     
-//    func load() throws -> [Ticker] {
-//        if FileManager.default.fileExists(atPath: url.path) {
-//            let data = try Data(contentsOf: url)
-//            let current = try PropertyListDecoder().decode([Ticker].self, from: data)
-//            self.saved = current
-//            return current
-//        } else {
-//            throw NSError(domain: "TickerPlistRepository", code: 1, userInfo: [NSLocalizedDescriptionKey: "File not found: \(url.path)"])
-//        }
-//    }
     
     // Updated to use Firebase for loading
         func load() async throws -> [Ticker] {
