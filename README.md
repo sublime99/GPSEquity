@@ -5,11 +5,11 @@ application not only provides real-time data but also integrates educational res
 user understanding of stock market dynamics. 
 
 ## Project Video
-[App Demo] (https://github.com/sublime99/GPSEquity/blob/c782f87edb11c5c90c4544ffba2c9be5cab0fabc/GPSEquity_App_Video.mp4)
+[![App Demo]] (https://github.com/sublime99/GPSEquity/blob/c782f87edb11c5c90c4544ffba2c9be5cab0fabc/GPSEquity_App_Video.mp4)
 
-##Demo Credential Details
-**Email:** demo@gps.com
-**Password:** Pass1234
+## Demo Credential Details
+- **Email:** demo@gps.com
+- **Password:** Pass1234
 
 Alternatively, users can create an account via our sign-up page. In case of forgotten passwords, users can
 reset their passwords by clicking on the “Reset Password” option. Do note, to reset password, you will need
