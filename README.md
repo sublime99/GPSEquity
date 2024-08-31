@@ -5,7 +5,7 @@ application not only provides real-time data but also integrates educational res
 user understanding of stock market dynamics. 
 
 ## Project Video
-(https://github.com/sublime99/GPSEquity/blob/c782f87edb11c5c90c4544ffba2c9be5cab0fabc/GPSEquity_App_Video.mp4)
+[App Demo] (https://github.com/sublime99/GPSEquity/blob/c782f87edb11c5c90c4544ffba2c9be5cab0fabc/GPSEquity_App_Video.mp4)
 
 ##Demo Credential Details
 **Email:** demo@gps.com
