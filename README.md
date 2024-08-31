@@ -17,7 +17,7 @@ to have access to the email account. It is recommended that to test the function
 account with a valid email that you have access to and then click on reset password button to change your
 GPSEquity account password.
 
-##GPS Equity Features
+## GPS Equity Features
 - Stock Data Integration
 - Live Stock Updates
 - Personalized Experience
@@ -25,18 +25,18 @@ GPSEquity account password.
 - Educational Resources
 - Community Engagement with Blogs
 
-##APIs Utilized in GPS Equity
+## APIs Utilized in GPS Equity
 - StockView API (Yahoo Finance)
 - YouTube API
 - Gemini API
 
-##Technical Support Instructions
+## Technical Support Instructions
 For troubleshooting build issues related to configuration, if encountered:
 1. Unzip the project file and open it in Xcode.
 2. Download the required info.plist file.
 3. Drag and drop the info.plist into Xcode, replacing the previous file.
 4. Wait for indexing (approximately 20 minutes) before building the project.
 
-##Future Directions
+## Future Directions
 Plans for future development include integrating machine learning to provide predictive analytics on stock
 trends and expanding the API suite to include additional financial services for a more comprehensive toolset.
